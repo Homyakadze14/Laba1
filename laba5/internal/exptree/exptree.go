@@ -8,8 +8,6 @@ import (
 	"strings"
 )
 
-const defcap = 10
-
 var (
 	ErrTokCount  = errors.New("Incorrect number of tokens")
 	ErrBadTokens = errors.New("Incorrect tokens")
