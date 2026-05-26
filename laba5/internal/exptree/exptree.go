@@ -3,6 +3,7 @@ package exptree
 import (
 	"errors"
 	"laba5/internal/stack"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -20,7 +21,7 @@ type Tree struct {
 	Parent *Node
 }
 
-const operands = "+-*/"
+const operands = "+-*/^"
 
 func Build(tokens []string) (*Tree, error) {
 	if len(tokens)%2 == 0 {
@@ -97,53 +98,64 @@ func Evaluate(root *Node) (int, error) {
 				return 0, errors.New("division by zero")
 			}
 			return left / right, nil
+		case "^":
+			if right < 0 {
+				return 0, errors.New("negative exponent not supported for integers")
+			}
+			return int(math.Pow(float64(left), float64(right))), nil
 		}
 	}
 
 	return root.Value, nil
 }
 
-func ConvertToPostfix(exp string) ([]string, error) {
-	pr := "*/"
-	out := make([]string, 0, defcap)
-	stack := stack.New()
-
-	for _, elem := range exp {
-		el := string(elem)
-		if el == ")" {
-			op, ok := stack.Pop()
-			for ok {
-				if op == "(" {
-					break
-				}
-				out = append(out, op.(string))
-				op, ok = stack.Pop()
-			}
-			if !ok && op != "(" {
-				return nil, ErrBadExp
-			}
-		} else if strings.Contains(operands, el) {
-			if !stack.IsEmpty() {
-				sel, _ := stack.Pop()
-				op := sel.(string)
-				if (strings.Contains(pr, op) && strings.Contains(pr, el)) || (!strings.Contains(pr, op) && strings.Contains(pr, el)) {
-					out = append(out, el)
-					stack.Push(op)
-				} else {
-					out = append(out, op)
-					stack.Push(el)
-				}
-			} else {
-				out = append(out, el)
-			}
-		} else {
-			out = append(out, el)
-		}
+func PostfixString(root *Node) string {
+	if root == nil {
+		return ""
 	}
 
-	if !stack.IsEmpty() {
-		return nil, ErrBadExp
+	if root.Operation == "" {
+		return strconv.Itoa(root.Value)
 	}
 
-	return out, nil
+	left := PostfixString(root.Left)
+	right := PostfixString(root.Right)
+	return left + " " + right + " " + root.Operation
+}
+
+func PrefixString(root *Node) string {
+	if root == nil {
+		return ""
+	}
+
+	if root.Operation == "" {
+		return strconv.Itoa(root.Value)
+	}
+
+	left := PrefixString(root.Left)
+	right := PrefixString(root.Right)
+	return root.Operation + " " + left + " " + right
+}
+
+func Height(root *Node) int {
+	if root == nil {
+		return 0
+	}
+	if root.Operation == "" {
+		return 1
+	}
+	leftH := Height(root.Left)
+	rightH := Height(root.Right)
+	if leftH > rightH {
+		return 1 + leftH
+	}
+	return 1 + rightH
+}
+
+func CountOperations(root *Node) int {
+	if root == nil || root.Operation == "" {
+		return 0
+	}
+	count := 1
+	return count + CountOperations(root.Left) + CountOperations(root.Right)
 }

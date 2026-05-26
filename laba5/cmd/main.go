@@ -6,7 +6,7 @@ import (
 )
 
 func main() {
-	exp := []string{"3", "4", "+", "5", "*"}
+	exp := []string{"3", "4", "+", "5", "*", "2", "^"}
 	tree, err := exptree.Build(exp)
 	if err != nil {
 		fmt.Printf("Error: %s", err.Error())
@@ -20,21 +20,15 @@ func main() {
 	}
 	fmt.Printf("Result: %d\n", res)
 
-	exp, err = exptree.ConvertToPostfix("(2-3)*4+5*6")
-	if err != nil {
-		fmt.Printf("Error: %s", err.Error())
-		return
-	}
-	tree, err = exptree.Build(exp)
-	if err != nil {
-		fmt.Printf("Error: %s", err.Error())
-		return
-	}
+	psfx := exptree.PostfixString(tree.Parent)
+	fmt.Printf("Result: %s\n", psfx)
 
-	res, err = exptree.Evaluate(tree.Parent)
-	if err != nil {
-		fmt.Printf("Error: %s", err.Error())
-		return
-	}
+	prfx := exptree.PrefixString(tree.Parent)
+	fmt.Printf("Result: %s\n", prfx)
+
+	res = exptree.Height(tree.Parent)
+	fmt.Printf("Result: %d\n", res)
+
+	res = exptree.CountOperations(tree.Parent)
 	fmt.Printf("Result: %d\n", res)
 }
